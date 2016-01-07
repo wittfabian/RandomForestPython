@@ -175,12 +175,14 @@ def compute_tree(dataset, parent_node, max_depth):
         node.is_leaf = False
 
     attr_to_split = None  # The index of the attribute we will split on
+    ai_to_split = None
     max_gain = 0  # The gain given by the best attribute
     split_val = None
     min_gain = 0.01
     dataset_entropy = calc_dataset_entropy(dataset, class_counts)
 
-    for attr_index in range(len(dataset.examples[0])):
+    for ai in range(len(dataset.attributes)):
+            attr_index = dataset.attributes[ai]
 
             local_max_gain = 0
             local_split_val = None
@@ -196,6 +198,7 @@ def compute_tree(dataset, parent_node, max_depth):
                 attr_value_list = new_list
 
             for val in attr_value_list:
+
                 # calculate the gain if we split on this value
                 # if gain is greater than local_max_gain, save this gain and this value
                 local_gain = calc_gain(dataset, dataset_entropy, val, attr_index)  # calc gain if we split on this value
@@ -208,9 +211,14 @@ def compute_tree(dataset, parent_node, max_depth):
                 max_gain = local_max_gain
                 split_val = local_split_val
                 attr_to_split = attr_index
+                ai_to_split = ai
 
     # attr_to_split is now the best attribute according to our gain metric
     if split_val is None or attr_to_split is None:
+        if len(attr_value_list) == 1:
+            node.classification = random.choice(class_counts.classnames)
+            node.is_leaf = True
+            return node
         print "Something went wrong. Couldn't find an attribute to split on or a split value."
     elif max_gain <= min_gain or node.height >= max_depth:
 
@@ -220,7 +228,7 @@ def compute_tree(dataset, parent_node, max_depth):
         return node
 
     node.attr_split_index = attr_to_split
-    node.attr_split = dataset.attributes[attr_to_split]
+    node.attr_split = dataset.attributes[ai_to_split]
     node.attr_split_value = split_val
     # currently doing one split per node so only two datasets are created
     upper_dataset = Data()
@@ -292,8 +300,8 @@ def compute_randomforrest(dataset, n_estimators, max_depth, perc_examples, perc_
     if max_depth < 0:
         max_depth = 0
 
-    if n_estimators < 2:
-        n_estimators = 2
+    if n_estimators < 1:
+        n_estimators = 1
 
     if perc_examples > 1:
         perc_examples = 1
@@ -315,11 +323,23 @@ def compute_randomforrest(dataset, n_estimators, max_depth, perc_examples, perc_
 
     # build forrest
     for i in range(n_estimators):
+        selection_examples = copy.deepcopy(dataset.examples)
+        selection_classes = copy.deepcopy(dataset.classes)
+        selection_attributes = copy.deepcopy(dataset.attributes)
         part_dataset = Data()
-        part_dataset.classes = copy.deepcopy(dataset.classes)
-        part_dataset.examples = copy.deepcopy(random.sample(dataset.examples, int(n_examples)))
-        part_dataset.attributes = copy.deepcopy(random.sample(dataset.attributes, int(n_attributes)))
-        forrest.append(compute_tree(dataset, None, max_depth))
+        part_examples = []
+        for j in range(int(n_examples)):
+            random_example = random.randrange(len(selection_examples))
+            part_dataset.classes.append(selection_classes[random_example])
+            part_examples.append(selection_examples[random_example])
+            selection_examples = np.delete(selection_examples, random_example, 0)
+            selection_classes = np.delete(selection_classes, random_example)
+        for k in range(int(n_attributes)):
+            random_attribute = random.randrange(len(selection_attributes))
+            part_dataset.attributes.append(selection_attributes[random_attribute])
+            selection_attributes = np.delete(selection_attributes, random_attribute)
+        part_dataset.examples = np.array(part_examples)
+        forrest.append(compute_tree(part_dataset, None, max_depth))
     return forrest
 
 
@@ -344,6 +364,42 @@ def test_forrest(testdata, forrest):
 
 
 # #################################################
+# classify test instances
+# #################################################
+def classify_testdata(testdata, forrest):
+    results = []
+    results_tree = []
+    for i in range(len(testdata)):
+        for j in range(len(forrest)):
+            results_tree = classify_testinstance(testdata[i], forrest[j])
+        cl = count_classes(results_tree)
+        max_count = 0
+        max_class_name = ''
+        for i in range(len(cl.classnames)):
+            if max_count <= cl.classcount[i]:
+                max_count = cl.classcount[i]
+                max_class_name = cl.classnames[i]
+        results.append(max_class_name)
+    return results
+
+
+# #################################################
+# functions for christian and pascal
+# #################################################
+def einfaches_klassifizieren_training(data, label, n_estimators, max_depth, perc_examples, perc_attributes):
+    trainingdata = Data()
+    trainingdata.examples = data
+    trainingdata.classes = label
+    trainingdata.attributes = range(len(data[0]))
+    return compute_randomforrest(trainingdata, n_estimators, max_depth, perc_examples, perc_attributes)
+
+
+def einfaches_klassifizieren(model, daten):
+    label = classify_testdata(daten, model)
+    return label
+
+
+# #################################################
 # function main for testing
 # #################################################
 def main():
@@ -363,27 +419,21 @@ def main():
         read_arffdata(testdata, testdatafile)
 
         # single tree
-        root = compute_tree(trainingdata, None, 20)
-        testresults1 = test_tree(testdata, root)
-        accuracy1 = calculate_accuracy(testdata.classes, testresults1)
-        print "single tree acc: " + str(accuracy1)
+        # root = compute_tree(trainingdata, None, 20)
+        # testresults1 = test_tree(testdata, root)
+        # accuracy1 = calculate_accuracy(testdata.classes, testresults1)
+        # print "single tree acc: " + str(accuracy1)
 
         # random forrest
         # compute_randomforrest(dataset, n_estimators, max_depth, perc_examples, perc_attributes)
-        forrest = compute_randomforrest(trainingdata, 10, 10, 0.7, 0.7)
-        testresults2 = test_forrest(testdata, forrest)
-        accuracy2 = calculate_accuracy(testdata.classes, testresults2)
-        print "ran forrest acc: " + str(accuracy2)
+        # forrest = compute_randomforrest(trainingdata, 20, 20, 1, 1)
+        # testresults2 = test_forrest(testdata, forrest)
+        # accuracy2 = calculate_accuracy(testdata.classes, testresults2)
+        # print "ran forrest acc: " + str(accuracy2)
 
-        # test tree
-
-
-        # calculate accuracy
-
-
-        # print tree
-        # print_tree(root)
-
+        # test christian und pascal functionen
+        model = einfaches_klassifizieren_training(trainingdata.examples, trainingdata.classes, 20, 20, 1, 1)
+        print einfaches_klassifizieren(model, testdata.examples)
 
 if __name__ == "__main__":
     main()
