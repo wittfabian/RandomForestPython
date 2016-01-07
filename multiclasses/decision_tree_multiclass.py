@@ -245,6 +245,42 @@ def compute_tree(dataset, parent_node):
 
 
 # #################################################
+# classify single test instance
+# #################################################
+def classify_testinstance(example, node):
+    if node.is_leaf:
+        return node.classification
+    else:
+        if example[node.attr_split_index] >= node.attr_split_value:
+            return classify_testinstance(example, node.upper_child)
+        else:
+            return classify_testinstance(example, node.lower_child)
+
+
+# #################################################
+# compute test instances
+# #################################################
+def test_tree(testdata, root):
+    results = []
+    for i in range(len(testdata.examples)):
+        results.append(classify_testinstance(testdata.examples[i], root))
+    return results
+
+
+# #################################################
+# function main for testing
+# #################################################
+def calculate_accuracy(original, test):
+    count_total = 0.0
+    count_right = 0.0
+    for i in range(len(original)):
+        count_total += 1
+        if original[i] == test[i]:
+            count_right += 1
+    return count_right / count_total
+
+
+# #################################################
 # function main for testing
 # #################################################
 def main():
@@ -267,7 +303,11 @@ def main():
         root = compute_tree(trainingdata, None)
 
         # test tree
-        # testresults = test_tree(testdata, root)
+        testresults = test_tree(testdata, root)
+
+        # calculate accuracy
+        accuracy = calculate_accuracy(testdata.classes, testresults)
+        print accuracy
 
         # print tree
         # print_tree(root)
