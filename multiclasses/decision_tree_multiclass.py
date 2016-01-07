@@ -229,7 +229,6 @@ def compute_tree(dataset, parent_node):
     ld = []
 
     for j in range(len(dataset.examples)):
-        dataset.examples[j, attr_to_split]
         if attr_to_split is not None and dataset.examples[j, attr_to_split] >= split_val:
             ud.append(dataset.examples[j])
             upper_dataset.classes.append(dataset.classes[j])
@@ -264,16 +263,15 @@ def main():
         testdata = Data()
         read_arffdata(testdata, testdatafile)
 
-        # testing area
-
-        # print trainingdata.examples[0, 1]
-
-        # end testing area
-
         # build tree
         root = compute_tree(trainingdata, None)
 
         # test tree
+        # testresults = test_tree(testdata, root)
+
+        # print tree
+        # print_tree(root)
+
 
 if __name__ == "__main__":
     main()
