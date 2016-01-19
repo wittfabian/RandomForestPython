@@ -1,16 +1,7 @@
 # RandomForestPython
 
-# decision-tree
-A C4.5 Decision Tree python implementation with validation, pruning, and attribute multi-splitting
-Contributors: Ryan Madden and Ally Cody
-
 ## Requirements
-python 2.7.6 [Download](https://www.python.org/download/releases/2.7.6/)
-
-## Files
-* btrain.csv, bvalidate.csv, btest.csv - The training, validation, and testing sets used for building and testing the program
-* decision-tree.py - The decision tree program
-* datatypes.csv - A metadata file that indicates (with comma separated true/false entries) which attributes are numeric (true) and nominal (false) **Note: You must edit this file or supply your own if using a different dataset than the one provided**
+python [Download](https://www.python.org/downloads/)
 
 ## How to run
 decision-tree.py accepts parameters passed via the command line. The possible paramters are:
@@ -20,7 +11,6 @@ decision-tree.py accepts parameters passed via the command line. The possible pa
 * Print flag (-s) (Optional, causes the dataset)
 * Validate flag (-v) followed by validate filename (Optional, specifies file to use for validation)
 * Test flag (-t) followed by test filename (Optional, specifies file to use for testing)
-* Pruning flag (-p) (Optional, you must include a validation file in order to prune)
 
 #### Examples
 #####Example 1
