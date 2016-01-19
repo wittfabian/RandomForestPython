@@ -33,4 +33,3 @@ This command runs decision_tree.py with iris_training.csv as the training set an
 python decision_tree.py data/iris_training.arff -t data/iris_test.arff -s
 ```
 This command runs decision_tree.py with iris_training.csv as the training set and iris_test.csv as the test set. The classifier is not specified so it defaults to the last column in the training set. Printing is enabled.
-```
