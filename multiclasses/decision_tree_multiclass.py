@@ -371,7 +371,7 @@ def classify_testdata(testdata, forrest):
     results_tree = []
     for i in range(len(testdata)):
         for j in range(len(forrest)):
-            results_tree = classify_testinstance(testdata[i], forrest[j])
+            results_tree += [classify_testinstance(testdata[i], forrest[j])]
         cl = count_classes(results_tree)
         max_count = 0
         max_class_name = ''
